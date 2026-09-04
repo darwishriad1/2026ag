@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="theme-color" content="#0f0c29" />
 <title>التقرير السنوي - الإجازات المرضية 2026</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="الإجازات المرضية">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
@@ -501,6 +508,165 @@
     opacity: 0.5;
   }
 
+  /* Theme toggle */
+  .theme-toggle {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .theme-toggle:active { transform: scale(0.92); }
+
+  /* Chart container */
+  .chart-wrap {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    height: 280px;
+  }
+  .chart-wrap canvas { max-height: 240px; }
+
+  /* Action toolbar */
+  .action-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    flex: 1;
+    min-width: 100px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .action-btn:hover {
+    background: rgba(255,255,255,0.15);
+  }
+  .action-btn:active { transform: scale(0.97); }
+  .action-btn.success { background: rgba(56,239,125,0.2); border-color: rgba(56,239,125,0.4); }
+  .action-btn.info { background: rgba(102,126,234,0.2); border-color: rgba(102,126,234,0.4); }
+
+  /* Toast notification */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.4s;
+    pointer-events: none;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  /* Light theme overrides */
+  body.light {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  }
+  body.light::before,
+  body.light::after { display: none; }
+  body.light .card {
+    background: rgba(255,255,255,0.85);
+    border-color: rgba(0,0,0,0.1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+  }
+  body.light .header h1,
+  body.light .table-title h2,
+  body.light .section-title,
+  body.light .month-name { color: #2c3e50; }
+  body.light .header p,
+  body.light .table-title p,
+  body.light .subtitle,
+  body.light .footer,
+  body.light .stat-label,
+  body.light .annual-banner-text p,
+  body.light .month-year { color: #555; }
+  body.light .lock-title,
+  body.light h1,
+  body.light .file-name { color: #2c3e50; }
+  body.light .lock-sub { color: #555; }
+  body.light input[type="password"],
+  body.light input[type="text"],
+  body.light .search-input {
+    background: #fff;
+    border-color: #ccc;
+    color: #2c3e50;
+  }
+  body.light input::placeholder,
+  body.light .search-input::placeholder { color: #999; }
+  body.light .input-group label { color: #555; }
+  body.light .month-card,
+  body.light .file-info,
+  body.light .stat-card,
+  body.light .annual-banner,
+  body.light .chart-wrap,
+  body.light .action-btn {
+    background: rgba(255,255,255,0.6);
+    border-color: rgba(0,0,0,0.1);
+  }
+  body.light .month-card:hover { background: rgba(255,255,255,0.9); }
+  body.light .month-count { color: #fff; }
+  body.light th { color: #fff; }
+  body.light td { color: #2c3e50; border-bottom-color: rgba(0,0,0,0.05); }
+  body.light tr:nth-child(even) { background: rgba(0,0,0,0.02); }
+  body.light tr:hover td { background: rgba(0,0,0,0.04); }
+  body.light .num-cell,
+  body.light .empty-notes { color: #999; }
+  body.light .table-wrap { background: rgba(0,0,0,0.03); }
+  body.light .search-icon,
+  body.light .search-clear,
+  body.light .toggle-eye { color: #555; }
+  body.light .theme-toggle { background: rgba(0,0,0,0.1); border-color: rgba(0,0,0,0.2); color: #2c3e50; }
+  body.light .footer { color: #888; }
+  body.light .no-results { color: #777; }
+
+  /* Print styles */
+  @media print {
+    body { background: #fff !important; padding: 0; }
+    body::before, body::after, .theme-toggle, .action-toolbar, .search-wrap,
+    .back-btn, .download-btn, .annual-banner, .header, .footer { display: none !important; }
+    .card { background: #fff !important; box-shadow: none !important; border: none !important; }
+    .table-wrap { overflow: visible !important; }
+    table { min-width: auto !important; }
+    td, th { color: #000 !important; }
+  }
+
   /* Footer */
   .footer {
     text-align: center;
@@ -530,6 +696,10 @@
 </style>
 </head>
 <body>
+  <button class="theme-toggle" id="themeToggle" title="تبديل الوضع">🌙</button>
+
+  <div class="toast" id="toast"></div>
+
   <div class="container">
     <!-- Header -->
     <div class="header" id="header" style="display:none;">
@@ -587,6 +757,18 @@
 
       <!-- Stats cards for current month -->
       <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Chart -->
+      <div class="chart-wrap">
+        <canvas id="statusChart"></canvas>
+      </div>
+
+      <!-- Action toolbar -->
+      <div class="action-toolbar">
+        <button class="action-btn info" id="printBtn">🖨️ طباعة</button>
+        <button class="action-btn success" id="excelBtn">📊 تصدير Excel</button>
+        <button class="action-btn" id="csvBtn">📄 CSV</button>
+      </div>
 
       <!-- Search -->
       <div class="search-wrap">
@@ -699,6 +881,78 @@
   });
   input.focus();
 
+  // ---- Theme toggle ----
+  const themeToggle = document.getElementById('themeToggle');
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  if (savedTheme === 'light') {
+    document.body.classList.add('light');
+    themeToggle.textContent = '☀️';
+  }
+  themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    const isLight = document.body.classList.contains('light');
+    themeToggle.textContent = isLight ? '☀️' : '🌙';
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    showToast(isLight ? '☀️ الوضع الفاتح' : '🌙 الوضع الداكن');
+  });
+
+  // ---- Toast notification ----
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  // ---- Chart ----
+  let statusChart = null;
+  function renderChart(stats) {
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    if (statusChart) statusChart.destroy();
+    const isLight = document.body.classList.contains('light');
+    const textColor = isLight ? '#2c3e50' : '#fff';
+    const gridColor = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+
+    const labels = [];
+    const values = [];
+    const colors = [];
+    if (stats['مريض'] > 0) { labels.push('مريض'); values.push(stats['مريض']); colors.push('#ff6b6b'); }
+    if (stats['مرافق'] > 0) { labels.push('مرافق'); values.push(stats['مرافق']); colors.push('#667eea'); }
+    if (stats['مرض قريب'] > 0) { labels.push('مرض قريب'); values.push(stats['مرض قريب']); colors.push('#ffc107'); }
+    if (stats['أخرى'] > 0) { labels.push('أخرى'); values.push(stats['أخرى']); colors.push('#38ef7d'); }
+
+    statusChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: colors,
+          borderColor: isLight ? '#fff' : 'rgba(15,12,41,0.8)',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: textColor, font: { size: 12, family: 'Tahoma' }, padding: 12 }
+          },
+          title: {
+            display: true,
+            text: 'توزيع الحالات',
+            color: textColor,
+            font: { size: 14, family: 'Tahoma', weight: 'bold' }
+          }
+        }
+      }
+    });
+  }
+
   // ---- Months list ----
   function renderMonths() {
     const grid = document.getElementById('monthsGrid');
@@ -767,6 +1021,7 @@
       else stats['أخرى']++;
     });
     renderStats(stats);
+    renderChart(stats);
 
     // Render all rows
     renderTableRows(data.rows);
@@ -874,6 +1129,67 @@
     }
     searchInput.focus();
   });
+
+  // ---- Print ----
+  document.getElementById('printBtn').addEventListener('click', () => {
+    showToast('🖨️ جاري التحضير للطباعة...');
+    setTimeout(() => window.print(), 300);
+  });
+
+  // ---- Excel export ----
+  document.getElementById('excelBtn').addEventListener('click', () => {
+    if (!currentMonth || !DATA[currentMonth]) return;
+    const data = DATA[currentMonth];
+    const rows = data.rows.map(r => ({
+      'م': r.num,
+      'الاسم': r.name,
+      'الحالة': r.status,
+      'التشخيص': r.diagnosis,
+      'بداية الإجازة': r.start,
+      'نهاية الإجازة': r.end,
+      'ملاحظات': r.notes
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, data.month_name);
+    XLSX.writeFile(wb, `إجازات_${data.month_name}_2026.xlsx`);
+    showToast('✅ تم تصدير Excel');
+  });
+
+  // ---- CSV export ----
+  document.getElementById('csvBtn').addEventListener('click', () => {
+    if (!currentMonth || !DATA[currentMonth]) return;
+    const data = DATA[currentMonth];
+    const headers = ['م', 'الاسم', 'الحالة', 'التشخيص', 'بداية الإجازة', 'نهاية الإجازة', 'ملاحظات'];
+    const csvRows = [headers.join(',')];
+    data.rows.forEach(r => {
+      csvRows.push([
+        r.num,
+        `"${r.name}"`,
+        `"${r.status}"`,
+        `"${r.diagnosis}"`,
+        r.start,
+        r.end,
+        `"${r.notes || ''}"`
+      ].join(','));
+    });
+    const csv = '\ufeff' + csvRows.join('\n'); // BOM for Excel Arabic
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `إجازات_${data.month_name}_2026.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ تم تصدير CSV');
+  });
+
+  // Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
 </script>
 </body>
 </html>
