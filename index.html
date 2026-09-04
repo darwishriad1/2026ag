@@ -372,6 +372,135 @@
   .status-مرض { background: rgba(255,193,7,0.2); color: #ffd54f; }
   .empty-notes { color: rgba(255,255,255,0.3); }
 
+  /* Search bar */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .search-input {
+    width: 100%;
+    padding: 12px 44px 12px 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s;
+  }
+  .search-input:focus {
+    border-color: #8a7cd8;
+    background: rgba(255,255,255,0.12);
+  }
+  .search-input::placeholder { color: rgba(255,255,255,0.4); }
+  .search-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.5);
+    font-size: 16px;
+    pointer-events: none;
+  }
+  .search-clear {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    font-size: 18px;
+    display: none;
+  }
+  .search-clear.show { display: block; }
+
+  /* Stats cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .stat-value {
+    color: #fff;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    color: rgba(255,255,255,0.6);
+    font-size: 11px;
+  }
+  .stat-icon { font-size: 18px; margin-bottom: 4px; }
+
+  /* Annual download banner */
+  .annual-banner {
+    background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+    border: 1px solid rgba(118,75,162,0.4);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .annual-banner-icon {
+    width: 50px; height: 50px;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .annual-banner-text { flex: 1; min-width: 0; }
+  .annual-banner-text h3 {
+    color: #fff;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .annual-banner-text p {
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+  }
+  .annual-banner-btn {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: bold;
+    box-shadow: 0 4px 14px rgba(56,239,125,0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .annual-banner-btn:active { transform: scale(0.97); }
+
+  /* No results */
+  .no-results {
+    text-align: center;
+    padding: 30px 16px;
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+  }
+  .no-results-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+  }
+
   /* Footer */
   .footer {
     text-align: center;
@@ -431,6 +560,17 @@
     <!-- Months -->
     <div class="card" id="monthsSection" style="margin-top: 16px;">
       <div class="section-title">📅 اختر الشهر لعرض التفاصيل</div>
+
+      <!-- Annual report banner -->
+      <div class="annual-banner">
+        <div class="annual-banner-icon">📊</div>
+        <div class="annual-banner-text">
+          <h3>التقرير السنوي الموحّد 2026</h3>
+          <p>كل الأشهر + إحصائيات شاملة في ملف واحد</p>
+        </div>
+        <a class="annual-banner-btn" href="annual_report_2026.pdf" download>⬇ تحميل</a>
+      </div>
+
       <div class="months-grid" id="monthsGrid"></div>
     </div>
 
@@ -444,6 +584,17 @@
         </div>
         <button class="download-btn" id="downloadBtn">⬇ PDF</button>
       </div>
+
+      <!-- Stats cards for current month -->
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Search -->
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="ابحث في الاسم، التشخيص، أو الملاحظات..." />
+        <button class="search-clear" id="searchClear">✕</button>
+      </div>
+
       <div class="table-wrap">
         <table id="dataTable">
           <thead>
@@ -459,6 +610,10 @@
           </thead>
           <tbody id="dataTableBody"></tbody>
         </table>
+        <div class="no-results" id="noResults" style="display:none;">
+          <div class="no-results-icon">🔍</div>
+          لا توجد نتائج تطابق بحثك
+        </div>
       </div>
     </div>
 
@@ -600,23 +755,25 @@
     document.getElementById('tableTitle').textContent = 'شهر ' + data.month_name + ' ' + data.year;
     document.getElementById('tableSub').textContent = data.count + ' حالة إجازة مرضية';
 
-    const tbody = document.getElementById('dataTableBody');
-    tbody.innerHTML = '';
+    // Compute stats for this month
+    const stats = {
+      total: data.count,
+      مريض: 0, مرافق: 0, 'مرض قريب': 0, أخرى: 0
+    };
     data.rows.forEach(r => {
-      const tr = document.createElement('tr');
-      const statusClass = r.status.includes('مرافق') ? 'status-مرافق' :
-                          r.status.includes('مرض') ? 'status-مرض' : 'status-مريض';
-      tr.innerHTML = `
-        <td class="num-cell">${r.num}</td>
-        <td class="name-cell">${r.name}</td>
-        <td><span class="status-badge ${statusClass}">${r.status}</span></td>
-        <td>${r.diagnosis}</td>
-        <td>${r.start}</td>
-        <td>${r.end}</td>
-        <td>${r.notes || '<span class="empty-notes">—</span>'}</td>
-      `;
-      tbody.appendChild(tr);
+      if (r.status.includes('مرافق')) stats['مرافق']++;
+      else if (r.status.includes('مرض')) stats['مرض قريب']++;
+      else if (r.status.includes('مريض')) stats['مريض']++;
+      else stats['أخرى']++;
     });
+    renderStats(stats);
+
+    // Render all rows
+    renderTableRows(data.rows);
+
+    // Reset search
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchClear').classList.remove('show');
 
     // PDF button - if PDF file exists for this month
     const pdfFile = PDF_FILES[monthKey];
@@ -633,10 +790,89 @@
     window.scrollTo({top: 0, behavior: 'smooth'});
   }
 
+  function renderStats(stats) {
+    const grid = document.getElementById('statsGrid');
+    grid.innerHTML = '';
+    const items = [
+      { label: 'إجمالي', value: stats.total, icon: '📊' },
+      { label: 'مريض', value: stats['مريض'], icon: '🤒' },
+      { label: 'مرافق', value: stats['مرافق'], icon: '👥' },
+      { label: 'مرض قريب', value: stats['مرض قريب'], icon: '❤️' },
+    ];
+    if (stats['أخرى'] > 0) items.push({ label: 'أخرى', value: stats['أخرى'], icon: '📋' });
+    items.forEach(it => {
+      const card = document.createElement('div');
+      card.className = 'stat-card';
+      card.innerHTML = `
+        <div class="stat-icon">${it.icon}</div>
+        <div class="stat-value">${it.value}</div>
+        <div class="stat-label">${it.label}</div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function renderTableRows(rows) {
+    const tbody = document.getElementById('dataTableBody');
+    const noResults = document.getElementById('noResults');
+    tbody.innerHTML = '';
+    if (rows.length === 0) {
+      noResults.style.display = 'block';
+      return;
+    }
+    noResults.style.display = 'none';
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      const statusClass = r.status.includes('مرافق') ? 'status-مرافق' :
+                          r.status.includes('مرض') ? 'status-مرض' : 'status-مريض';
+      tr.innerHTML = `
+        <td class="num-cell">${r.num}</td>
+        <td class="name-cell">${r.name}</td>
+        <td><span class="status-badge ${statusClass}">${r.status}</span></td>
+        <td>${r.diagnosis}</td>
+        <td>${r.start}</td>
+        <td>${r.end}</td>
+        <td>${r.notes || '<span class="empty-notes">—</span>'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
   backBtn.addEventListener('click', () => {
     tableSection.style.display = 'none';
     monthsSection.style.display = 'block';
     currentMonth = null;
+  });
+
+  // Search functionality
+  const searchInput = document.getElementById('searchInput');
+  const searchClear = document.getElementById('searchClear');
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    if (q) {
+      searchClear.classList.add('show');
+    } else {
+      searchClear.classList.remove('show');
+    }
+    if (!currentMonth || !DATA[currentMonth]) return;
+    const data = DATA[currentMonth];
+    const filtered = data.rows.filter(r => {
+      return (r.name || '').toLowerCase().includes(q) ||
+             (r.diagnosis || '').toLowerCase().includes(q) ||
+             (r.status || '').toLowerCase().includes(q) ||
+             (r.notes || '').toLowerCase().includes(q) ||
+             (r.start || '').toLowerCase().includes(q) ||
+             (r.end || '').toLowerCase().includes(q);
+    });
+    renderTableRows(filtered);
+  });
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    searchClear.classList.remove('show');
+    if (currentMonth && DATA[currentMonth]) {
+      renderTableRows(DATA[currentMonth].rows);
+    }
+    searchInput.focus();
   });
 </script>
 </body>
