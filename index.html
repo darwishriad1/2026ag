@@ -378,6 +378,17 @@
   .status-مرافق { background: rgba(102,126,234,0.25); color: #a8b8ff; }
   .status-مرض { background: rgba(255,193,7,0.2); color: #ffd54f; }
   .empty-notes { color: rgba(255,255,255,0.3); }
+  .days-badge {
+    display: inline-block;
+    background: rgba(102,126,234,0.25);
+    color: #a8b8ff;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+  }
 
   /* Search bar */
   .search-wrap {
@@ -1070,25 +1081,64 @@
   function renderTableRows(rows) {
     const tbody = document.getElementById('dataTableBody');
     const noResults = document.getElementById('noResults');
+    const thead = document.querySelector('#dataTable thead tr');
     tbody.innerHTML = '';
     if (rows.length === 0) {
       noResults.style.display = 'block';
       return;
     }
     noResults.style.display = 'none';
+    // Check if any row has 'days' field (August format)
+    const hasDays = rows.some(r => r.days);
+    // Update header if needed
+    if (hasDays && thead.children.length < 8) {
+      thead.innerHTML = `
+        <th class="num-cell">م</th>
+        <th>الاسم</th>
+        <th>الحالة</th>
+        <th>التشخيص</th>
+        <th>البداية</th>
+        <th>النهاية</th>
+        <th>الأيام</th>
+        <th>ملاحظات</th>
+      `;
+    } else if (!hasDays && thead.children.length > 7) {
+      thead.innerHTML = `
+        <th class="num-cell">م</th>
+        <th>الاسم</th>
+        <th>الحالة</th>
+        <th>التشخيص</th>
+        <th>البداية</th>
+        <th>النهاية</th>
+        <th>ملاحظات</th>
+      `;
+    }
     rows.forEach(r => {
       const tr = document.createElement('tr');
       const statusClass = r.status.includes('مرافق') ? 'status-مرافق' :
                           r.status.includes('مرض') ? 'status-مرض' : 'status-مريض';
-      tr.innerHTML = `
-        <td class="num-cell">${r.num}</td>
-        <td class="name-cell">${r.name}</td>
-        <td><span class="status-badge ${statusClass}">${r.status}</span></td>
-        <td>${r.diagnosis}</td>
-        <td>${r.start}</td>
-        <td>${r.end}</td>
-        <td>${r.notes || '<span class="empty-notes">—</span>'}</td>
-      `;
+      if (hasDays) {
+        tr.innerHTML = `
+          <td class="num-cell">${r.num}</td>
+          <td class="name-cell">${r.name}</td>
+          <td><span class="status-badge ${statusClass}">${r.status}</span></td>
+          <td>${r.diagnosis}</td>
+          <td>${r.start}</td>
+          <td>${r.end}</td>
+          <td><span class="days-badge">${r.days || '-'}</span></td>
+          <td>${r.notes || '<span class="empty-notes">—</span>'}</td>
+        `;
+      } else {
+        tr.innerHTML = `
+          <td class="num-cell">${r.num}</td>
+          <td class="name-cell">${r.name}</td>
+          <td><span class="status-badge ${statusClass}">${r.status}</span></td>
+          <td>${r.diagnosis}</td>
+          <td>${r.start}</td>
+          <td>${r.end}</td>
+          <td>${r.notes || '<span class="empty-notes">—</span>'}</td>
+        `;
+      }
       tbody.appendChild(tr);
     });
   }
